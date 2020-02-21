@@ -20,8 +20,13 @@
       <x>20</x>
       <y>10</y>
       <width>491</width>
-      <height>421</height>
+      <height>231</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	font: italic bold 30px serif;
+	background-color: white;
+	color: black;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="run">
@@ -34,14 +39,20 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">    background-color: green;
+     <string notr="true">
+    background-color: red;
     border-style: outset;
     border-width: 2px;
     border-radius: 10px;
     border-color: beige;
     font: bold 14px;
     min-width: 10em;
-    padding: 6px;</string>
+    padding: 6px;
+
+
+    background-color: rgb(224, 0, 0);
+    border-style: inset;
+</string>
     </property>
     <property name="text">
      <string>Run this SHIT</string>
