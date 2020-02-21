@@ -13,3 +13,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+void MainWindow::on_run_clicked()
+{
+    lexer A(ui->code->toPlainText());
+    ui->result->setText(A.getStringToken());
+}

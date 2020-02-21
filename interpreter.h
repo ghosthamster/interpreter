@@ -27,6 +27,7 @@ class lexer{
     int pos;
 public:
     QVector<Token> getToken();
+    QString getStringToken();
     lexer(QString c){text = c;
                      QVector<QString> keyword;
                      keyword<<"if"<<"else"<<"step"<<"in"<<"for"<<"to"<<"run"<<"delete"<<"find_all_files"
