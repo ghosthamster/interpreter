@@ -12,10 +12,10 @@ QString lexer::getStringToken(){
           if(tokens[i].tag == Tag::TYPE) text.append("TYPE,");
           else if(tokens[i].tag == Tag::KEYWORD) text.append("KEYWORD,");
           else if(tokens[i].tag == Tag::LITERAL) text.append("LITERAL,");
-          else if(tokens[i].tag == Tag::COMMENT) text.append("COMMENTS,");
+          else if(tokens[i].tag == Tag::COMMENTS) text.append("COMMENTS,");
           else if(tokens[i].tag == Tag::OPERATOR) text.append("OPERATOR,");
           else if(tokens[i].tag == Tag::IDENTIFIER) text.append("IDENTIFIER,");
-          else if(tokens[i].tag == Tag::SEPARATOR) text.append("SEPARATORS,");
+          else if(tokens[i].tag == Tag::SEPARATORS) text.append("SEPARATORS,");
           text.append(tokens[i].data + "> ");
     }
     return text;
@@ -64,10 +64,11 @@ QVector<Token> lexer::getToken(){
             pos++;
             continue;
         }
-        if(text[pos] == ";")
+        if(text[pos] == ";" || text[pos] == "{" || text[pos] == "}" )
         {
+            word.append(text[pos]);
             pos++;
-            tokens.append(Token(";",Tag::SEPARATOR));
+            tokens.append(Token(word,Tag::SEPARATORS));
             continue;
         }
         if(text[pos] == "#")
@@ -77,7 +78,7 @@ QVector<Token> lexer::getToken(){
                 word.append(text[pos]);
                 pos++;
             }
-            tokens.append(Token(word,Tag::LITERAL));
+            tokens.append(Token(word,Tag::COMMENTS));
             continue;
         }
         if(text[pos] == "=" || text[pos] == ">" || text[pos] == "<")

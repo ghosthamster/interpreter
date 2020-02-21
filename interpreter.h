@@ -6,10 +6,10 @@
 enum class Tag {
                 IDENTIFIER,
                 KEYWORD,
-                SEPARATOR,
+                SEPARATORS,
                 OPERATOR,
                 LITERAL,
-                COMMENT,
+                COMMENTS,
                 TYPE
 };
 
@@ -30,8 +30,8 @@ public:
     QString getStringToken();
     lexer(QString c){text = c;
                      QVector<QString> keyword;
-                     keyword<<"if"<<"else"<<"step"<<"in"<<"for"<<"to"<<"run"<<"delete"<<"find_all_files"
-                           <<"find_all_catalogues"<<"backup"<<"copy";
+                     keyword<<"if"<<"else"<<"step"<<"in"<<"for"<<"to"<<"run"<<"delete"<<"findAllFiles"
+                           <<"findAllCatalogues"<<"backup"<<"copy";
                      QVector<QString> Operator;
                      Operator<<"="<<">"<<"<"<<"==";
                      QVector<QString> type;
@@ -48,8 +48,8 @@ public:
                      {
                         tags.insert(type[i],Token(type[i],Tag::TYPE));
                      }
-                     tags.insert(";",Token(";",Tag::SEPARATOR));
-                     tags.insert("#",Token("#",Tag::COMMENT));
+                     tags.insert(";",Token(";",Tag::SEPARATORS));
+                     tags.insert("#",Token("#",Tag::COMMENTS));
                     }
 };
 
