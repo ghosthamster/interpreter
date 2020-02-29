@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "interpreter.h"
-#include <QString>
 
 QString lexer::getStringToken(){
     QVector<Token> tokens = getToken();
@@ -75,10 +74,10 @@ QVector<Token> lexer::getToken(){
         {
             while(text[pos] != "\n" && pos<text.length())
             {
-                word.append(text[pos]);
+                //word.append(text[pos]);
                 pos++;
             }
-            tokens.append(Token(word,Tag::COMMENTS));
+            //tokens.append(Token(word,Tag::COMMENTS));
             continue;
         }
         if(text[pos] == "=" || text[pos] == ">" || text[pos] == "<")
@@ -102,4 +101,116 @@ QVector<Token> lexer::getToken(){
         }
     }
     return tokens;
+}
+
+
+void Parser::CreateTree(){
+   while(i<tokens.length())
+   {
+       if(tokens[i].tag==Tag::TYPE)
+       {
+           parseVarDecl();
+       }
+       if(tokens[i].tag==Tag::IDENTIFIER)
+       {
+           parseVarAsing();
+       }
+       else{
+           //eror here
+           i++;
+       }
+   }
+}
+vardecl* Parser::parseVarDecl(){
+
+    vardecl* node = new vardecl();
+    if(tokens[i + 1].tag == Tag::IDENTIFIER)
+    {
+        node->type = convertType(tokens[i].data);
+        i++;
+        node->id = parseId();
+        if(node->id.isNull())
+        {
+            //error;
+            return nullptr;
+        }
+        i++;
+        return node;
+    }
+    else ; //error
+}
+
+QString Parser::parseId()
+{
+    if(tokens[i].data==";")
+    {
+        i++;
+        return tokens[i].data;
+    }
+    return nullptr;
+}
+varasign* Parser::parseVarAsing(){
+    ;
+}
+
+Type* Parser::convertType(QString type)
+{
+    if(type == "natural")
+        return new Natural;
+    if(type == "file")
+        return new File;
+    if(type == "catalog")
+        return new Catalog;
+    if(type == "url")
+        return new Url;
+}
+
+QTreeWidgetItem *vardecl::print()
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+    item->setText(0,"vardecl");
+    QTreeWidgetItem* ch = new QTreeWidgetItem();
+    item->setText(0,id);
+    item->addChild(ch);
+
+}
+
+QTreeWidgetItem *Natural::print()
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+        item->setText(0,convertType(type));
+        return item;
+}
+
+QTreeWidgetItem *Catalog::print()
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+        item->setText(0,convertType(type));
+        return item;
+}
+
+QTreeWidgetItem *Url::print()
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+        item->setText(0,convertType(type));
+        return item;
+}
+
+QTreeWidgetItem *File::print()
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+        item->setText(0,convertType(type));
+        return item;
+}
+
+QString Type::convertType(type ttype)
+{
+    if(ttype == type::file)
+        return "file";
+    if(ttype == type::url)
+        return "url";
+    if(ttype == type::catalog)
+        return "catalog";
+    if(ttype == type::natural)
+        return "natural";
 }

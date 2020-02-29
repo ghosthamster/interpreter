@@ -55,7 +55,7 @@
 </string>
     </property>
     <property name="text">
-     <string>Run this SHIT</string>
+     <string>Run</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="result">
@@ -67,6 +67,21 @@
       <height>171</height>
      </rect>
     </property>
+   </widget>
+   <widget class="QTreeWidget" name="tree">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>90</y>
+      <width>256</width>
+      <height>331</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
