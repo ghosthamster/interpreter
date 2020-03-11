@@ -1,216 +1,311 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include "interpreter.h"
 
-QString lexer::getStringToken(){
-    QVector<Token> tokens = getToken();
-      QString text;
-      for (int i = 0; i < tokens.size();i++)
-      {
-          text.append("<");
-          if(tokens[i].tag == Tag::TYPE) text.append("TYPE,");
-          else if(tokens[i].tag == Tag::KEYWORD) text.append("KEYWORD,");
-          else if(tokens[i].tag == Tag::LITERAL) text.append("LITERAL,");
-          else if(tokens[i].tag == Tag::COMMENTS) text.append("COMMENTS,");
-          else if(tokens[i].tag == Tag::OPERATOR) text.append("OPERATOR,");
-          else if(tokens[i].tag == Tag::IDENTIFIER) text.append("IDENTIFIER,");
-          else if(tokens[i].tag == Tag::SEPARATORS) text.append("SEPARATORS,");
-          text.append(tokens[i].data + "> ");
-    }
-    return text;
+Token::Token(Tag _tag, QString Value)
+{
+    tag = _tag;
+    value = Value;
 }
 
-QVector<Token> lexer::getToken(){
-    pos = 0;
-    QString word;
+Lexer::Lexer(QString code)
+{
+    QVector<QString> keywords;
+    QVector<QString> type;
+    QVector<QString> operatorsb;
+    QVector<QString> operatorsu;
+
+    keywords << "for" << "if" << "else";
+    type << "natural" << "url" << "file" << "catalogue";
+    operatorsb << ">" << "<" << "==" << "=" << "+" << "-" << "copy" << "find" ;
+    operatorsu << "delete" << "backup" << "size" ;
+
+    for(int i = 0; i < keywords.size(); ++i){ words.insert(keywords[i],Token(Tag::KEYWORD,keywords[i])); }
+    for(int i = 0; i < type.size(); ++i){ words.insert(type[i],Token(Tag::TYPE,type[i])); }
+    for(int i = 0; i < operatorsb.size(); ++i){ words.insert(operatorsb[i],Token(Tag::OPERATORB,operatorsb[i])); }
+    for(int i = 0; i < operatorsu.size(); ++i){ words.insert(operatorsu[i],Token(Tag::OPERATORU,operatorsu[i])); }
+
+    text = code;
+}
+
+QVector<Token> Lexer::get_tokens()
+{
     QVector<Token> tokens;
-    while(pos<text.length())
+    QString word;
+    pos = 0;
+    while(pos < text.size())
     {
         word = "";
-        if(text[pos].isSpace())
+
+        if(text[pos].isSpace() || text[pos] == "\n")
         {
             pos++;
+            continue;
         }
+
         if(text[pos].isLetter())
         {
-            while(text[pos].isLetterOrNumber())
+            while (text[pos].isLetterOrNumber())
             {
                 word.append(text[pos]);
                 pos++;
             }
-            tokens.append(tags.value(word,Token(word,Tag::IDENTIFIER)));
+
+            tokens.append(words.value(word,Token(Tag::IDENTIFIER,word)));
             continue;
         }
+
         if(text[pos].isDigit())
         {
-            while(text[pos].isDigit())
+            while (text[pos].isDigit())
             {
                 word.append(text[pos]);
                 pos++;
             }
-            tokens.append(Token(word,Tag::LITERAL));
+
+            tokens.append(Token(Tag::LITERAL,word));
             continue;
         }
+
         if(text[pos] == "\"")
         {
             do
             {
                 word.append(text[pos]);
                 pos++;
-            }while(text[pos] != "\"" && pos<text.length());
-            word.append("\"");
-            tokens.append(Token(word,Tag::LITERAL));
+            }while (text[pos] != "\"" && pos < text.size());
+
             pos++;
+            word.remove(0,1);
+
+            tokens.append(Token(Tag::LITERAL,word));
             continue;
         }
-        if(text[pos] == ";" || text[pos] == "{" || text[pos] == "}" )
+
+        if(text[pos] == ";" || text[pos] == "{" || text[pos] == "}")
         {
             word.append(text[pos]);
             pos++;
-            tokens.append(Token(word,Tag::SEPARATORS));
+            tokens.append(Token(Tag::SEPARATORS,word));
             continue;
         }
-        if(text[pos] == "#")
+
+        if(text[pos] == ">" || text[pos] == "<" || text[pos] == "=" || text[pos] == "+" || text[pos] == "-")
         {
-            while(text[pos] != "\n" && pos<text.length())
-            {
-                //word.append(text[pos]);
-                pos++;
-            }
-            //tokens.append(Token(word,Tag::COMMENTS));
-            continue;
-        }
-        if(text[pos] == "=" || text[pos] == ">" || text[pos] == "<")
-        {
-            if(text[pos] == "=" && text[pos+1] == "=")
-            {
-                tokens.append(Token("==",Tag::OPERATOR));
-            }
-            else
-            {
-                word.append(text[pos]);
-                tokens.append(Token(word,Tag::OPERATOR));
-            }
+            if(text[pos] == '=' && text[pos+1] == '=') { word.append('='); pos++;}
+            word.append(text[pos]);
+            tokens.append(Token(Tag::OPERATORB,word));
             pos++;
             continue;
         }
         else
         {
-            //add exeption
-            pos++;
+            InterpreterException exception("Unknown symbol has been found!\nPosition: " + QString::number(pos) + "\nSymbol: " + text[pos]);
+            exception.raise();
         }
     }
     return tokens;
 }
 
-
-void Parser::CreateTree(){
-   while(i<tokens.length())
-   {
-       if(tokens[i].tag==Tag::TYPE)
-       {
-           parseVarDecl();
-       }
-       if(tokens[i].tag==Tag::IDENTIFIER)
-       {
-           parseVarAsing();
-       }
-       else{
-           //eror here
-           i++;
-       }
-   }
-}
-vardecl* Parser::parseVarDecl(){
-
-    vardecl* node = new vardecl();
-    if(tokens[i + 1].tag == Tag::IDENTIFIER)
+QList<AST::Node*> Parser::createTree(bool isBody)
+{
+    QList<AST::Node*> tree;
+    tree.clear();
+    while(tokenstream.size())
     {
-        node->type = convertType(tokens[i].data);
-        i++;
-        node->id = parseId();
-        if(node->id.isNull())
+        current = tokenstream.takeFirst();
+        if(current.tag == Tag::TYPE)
         {
-            //error;
-            return nullptr;
+            if((tokenstream.size()) > 2 && tokenstream[1].value == '=') tree.push_back(parseInit());
+            else tree.push_back(parseVarDecl());
+            NotEmptyAssign("Expected ';' at the end of stmt");
+            if(current.value != ';') throw InterpreterException("Expected ';' at the end of stmt");
         }
-        i++;
+        else if(current.tag == Tag::IDENTIFIER)
+        {
+            tree.push_back(parseVarAssign());
+            NotEmptyAssign("Expected ';' at the end of stmt");
+            if(current.value != ';') throw InterpreterException("Expected ';' at the end of stmt");
+        }
+        else if(current.value == "if")
+        {
+            tree.push_back(parseIf());
+        }
+        else if(current.value == "for")
+        {
+            tree.push_back(parseFor());
+        }
+        else if(current.value == "}")
+        {
+            break;
+        }
+        else if (current.tag == Tag::OPERATORU)
+        {
+            tree.push_back(parseUnOp());
+            if(current.value != ';') throw InterpreterException("Expected ';' at the end of stmt");
+        }
+
+    }
+
+    return tree;
+}
+
+AST::VarDecl* Parser::parseVarDecl()
+{
+    AST::VarDecl* node = new AST::VarDecl();
+    node->type = convertType(current.value);
+    NotEmptyAssign("Missing ID after TYPE");
+    if(current.tag == Tag::IDENTIFIER)
+    {
+        node->id = current.value;
         return node;
     }
-    else ; //error
+    throw InterpreterException("Missing ID after Type");
 }
 
-QString Parser::parseId()
+AST::VarAssign* Parser::parseVarAssign()
 {
-    if(tokens[i].data==";")
+    AST::VarAssign* node = new AST::VarAssign();
+    node->var = new AST::Variable(current.value);
+    NotEmptyAssign("Missing '=' after ID");
+    if(current.value == "=")
     {
-        i++;
-        return tokens[i].data;
+        node->rval = parseExpr();
+        return node;
     }
-    return nullptr;
-}
-varasign* Parser::parseVarAsing(){
-    ;
+    throw InterpreterException("Missing '=' after ID");
 }
 
-Type* Parser::convertType(QString type)
+AST::VarInit *Parser::parseInit()
 {
-    if(type == "natural")
-        return new Natural;
-    if(type == "file")
-        return new File;
-    if(type == "catalog")
-        return new Catalog;
-    if(type == "url")
-        return new Url;
+    AST::VarInit* node = new AST::VarInit();
+    node->decl = parseVarDecl();
+    node->assign = parseVarAssign();
+    return node;
 }
 
-QTreeWidgetItem *vardecl::print()
+AST::Expr *Parser::parseExpr()
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-    item->setText(0,"vardecl");
-    QTreeWidgetItem* ch = new QTreeWidgetItem();
-    item->setText(0,id);
-    item->addChild(ch);
+    NotEmptyAssign("Expected expression");
+    if(!tokenstream.isEmpty() && (tokenstream.first().tag == Tag::OPERATORB))
+    {
+        AST::Expr* expr = nullptr;
+        QString op = tokenstream.takeFirst().value;
+        tokenstream.push_front(current);
+        expr = parseBinOp(op);
+        return expr;
+    }
+    else if(current.tag == Tag::IDENTIFIER) return new AST::Variable(current.value);
+    else if(current.tag == Tag::LITERAL) return  parseConst();
+    else if(current.tag == Tag::OPERATORU) return  parseUnOp();
 
+    throw InterpreterException("Expected expression");
 }
 
-QTreeWidgetItem *Natural::print()
+AST::BinOp *Parser::parseBinOp(QString oper)
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0,convertType(type));
-        return item;
+    AST::BinOp *node = new AST::BinOp();
+    node->left = parseExpr();
+    node->op = oper;
+    node->right = parseExpr();
+    return node;
 }
 
-QTreeWidgetItem *Catalog::print()
+AST::Body *Parser::parseBody()
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0,convertType(type));
-        return item;
+    AST::Body* node = new AST::Body();
+    NotEmptyAssign("Expected '{' at body start");
+    if(current.value == '{')
+    {
+        node->subtree = createTree(true);
+        if(current.value == '}') return node;
+        throw InterpreterException("Expected '}' at body end");
+    }
+    throw InterpreterException("Expected '{' at body start");
 }
 
-QTreeWidgetItem *Url::print()
+AST::IfStmt *Parser::parseIf()
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0,convertType(type));
-        return item;
+    AST::IfStmt* node = new AST::IfStmt();
+    node->expr = parseExpr();
+    node->body = parseBody();
+
+    if(!tokenstream.isEmpty() && tokenstream.front().value == "else")
+    {
+        tokenstream.pop_front();
+        node->elsestmt = new AST::ElseStmt();
+        node->elsestmt->elsebd = parseBody();
+    }
+    return node;
 }
 
-QTreeWidgetItem *File::print()
+AST::ForStmt *Parser::parseFor()
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-        item->setText(0,convertType(type));
-        return item;
+    AST::ForStmt* node = new AST::ForStmt();
+    NotEmptyAssign("Expected Initialization or Assigment in FOR stmt");
+    if(current.tag == Tag::TYPE) node->init = parseInit();
+    else if(current.tag == Tag::IDENTIFIER) node->init = parseVarAssign();
+    node->test = parseExpr();
+    node->update = parseExpr();
+    node->stmts = parseBody();
+    return node;
 }
 
-QString Type::convertType(type ttype)
+AST::Constant *Parser::parseConst()
 {
-    if(ttype == type::file)
-        return "file";
-    if(ttype == type::url)
-        return "url";
-    if(ttype == type::catalog)
-        return "catalog";
-    if(ttype == type::natural)
-        return "natural";
+    QRegExp re("\d");
+    if(re.exactMatch(current.value)) return new AST::NaturalConst(current.value.toInt());
+    return new AST::UrlConst(current.value);
+}
+
+AST::UnOp *Parser::parseUnOp()
+{
+    AST::UnOp* node = new AST::UnOp();
+    node->op = convertUnOp(current.value);
+    node->expr = parseExpr();
+    return node;
+}
+
+void Parser::printTree(QList<AST::Node*> tree,QTreeWidget *trwdg)
+{
+    trwdg->clear();
+    while(!tree.isEmpty())
+    {
+        trwdg->addTopLevelItem(tree.first()->print());
+        tree.pop_front();
+    }
+}
+
+AST::Type *Parser::convertType(QString qtype)
+{
+    if(qtype == "natural") return new AST::Natural();
+    else if(qtype == "file") return  new AST::File();
+    else if(qtype == "catalogue") return new AST::Catalogue;
+    else if(qtype == "url") return new AST::Url();
+}
+
+AST::UNOP Parser::convertUnOp(QString qtype)
+{
+    if(qtype == "backup") return AST::UNOP::BACKUP;
+    else if(qtype == "delete") return  AST::UNOP::DELETE;
+    else if(qtype == "size") return AST::UNOP::SIZE;
+}
+
+void Parser::NotEmptyAssign(QString err)
+{
+    if (tokenstream.isEmpty()) throw InterpreterException(err);
+    current = tokenstream.takeFirst();
+}
+
+Parser::Parser(QVector<Token> tokens)
+{
+    tokenstream = tokens;
+}
+
+
+void Interpreter::Evaluate()
+{
+    while(!tree.isEmpty())
+    {
+        tree.takeFirst()->eval(symbtable);
+    }
+
 }

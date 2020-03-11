@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1077</width>
     <height>600</height>
    </rect>
   </property>
@@ -14,67 +14,46 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTextEdit" name="code">
+   <widget class="QTextEdit" name="textEdit">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>10</y>
-      <width>491</width>
-      <height>231</height>
+      <y>20</y>
+      <width>391</width>
+      <height>281</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">	font: italic bold 30px serif;
-	background-color: white;
-	color: black;</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="run">
+   <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>20</y>
-      <width>186</width>
-      <height>51</height>
+      <x>350</x>
+      <y>540</y>
+      <width>75</width>
+      <height>23</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">
-    background-color: red;
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: beige;
-    font: bold 14px;
-    min-width: 10em;
-    padding: 6px;
-
-
-    background-color: rgb(224, 0, 0);
-    border-style: inset;
-</string>
     </property>
     <property name="text">
-     <string>Run</string>
+     <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="result">
+   <widget class="QTextEdit" name="textEdit_2">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>250</y>
-      <width>491</width>
-      <height>171</height>
+      <y>320</y>
+      <width>401</width>
+      <height>201</height>
      </rect>
     </property>
    </widget>
-   <widget class="QTreeWidget" name="tree">
+   <widget class="QTreeWidget" name="treeWidget">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>90</y>
-      <width>256</width>
-      <height>331</height>
+      <x>430</x>
+      <y>20</y>
+      <width>301</width>
+      <height>501</height>
      </rect>
     </property>
     <column>
@@ -83,18 +62,45 @@
      </property>
     </column>
    </widget>
+   <widget class="QTableWidget" name="tableWidget">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>20</y>
+      <width>341</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="rowCount">
+     <number>10</number>
+    </property>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <column>
+     <property name="text">
+      <string>ID</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Value</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Type</string>
+     </property>
+    </column>
+   </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
